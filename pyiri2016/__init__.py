@@ -2,7 +2,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from dateutil.parser import parse
 import xarray
-from numpy import arange, nan, ones, squeeze
+import numpy as np
 #
 import iri2016 # fortran
 
@@ -28,7 +28,7 @@ class IRI2016(object):
          IRI switches to turn on/off several options
         """
 
-        jf = ones(50)
+        jf = np.ones(50,dtype=bool)
 
                         #    i          1                       0                 standard version
                         #    ------------------------------------------------------------------------
@@ -76,10 +76,12 @@ class IRI2016(object):
 
 #%%
 
-    def IRI(self, time, altkm, glat, glon, ap, f107, ssn, var):
+    def IRI(self, time, altkm, glat, glon, ap=None, f107=None, ssn=None, var=None):
 
         if isinstance(time, str):
             time = parse(time)
+
+        altkm = np.atleast_1d(altkm)
 
 #        doy = squeeze(TimeUtilities().CalcDOY(year, month, dom))
 
@@ -88,7 +90,7 @@ class IRI2016(object):
 
         # additional "input parameters" (necessary to scale the empirical model results
         # to measurements)
-        addinp = -ones(12)
+        addinp = -np.ones(12)
 
         #------------------------------------------------------------------------------
         #
@@ -124,58 +126,33 @@ class IRI2016(object):
 
         # hour + 25 denotes UTC time
 
-        outf,oarr = iri2016.iri_sub(jf.astype(bool), jmag, glat, glon,
+        outf,oarr = iri2016.iri_sub(jf, jmag, glat, glon,
                                     time.year, mmdd, time.hour+25, altkm,
                                     proot/'data/')
 
 # %% collect output
-        iri = xarray.DataArray(oarr[:9,:].T,
+        iri = xarray.DataArray(outf[:9,:].T,
                          coords={'alt_km':altkm, 'sim':simout},
                          dims=['alt_km','sim'],
-                         attrs={'f107':f107, 'ap':ap,
-                                'glat':glat,'glon':glon,'time':time})
+                         attrs={'f107':oarr[40], 'ap':oarr[50],
+                                'glat':glat,'glon':glon,'time':time,
+                                'NmF2':oarr[0], 'hmF2':oarr[1],
+                                'B0':oarr[9]
+                                })
 
-        # IRI Temperature (in K)
-        teIRI = squeeze(a[4 - 1, :][0])
-        tiIRI = squeeze(a[3 - 1, :][0])
+# FIRI Ne (in m-3)
+#        iri_ne_firi = self._RmNeg(a[13 - 1, :])[0]
 
-        # FIRI Ne (in m-3)
-        iri_ne_firi = squeeze(self._RmNeg(a[13 - 1, :])[0])
+## Ionic density (NO+, O2+, O+, H+, He+, N+, Cluster Ions)
 
-        ######### Ionic density (NO+, O2+, O+, H+, He+, N+, Cluster Ions)
-        # Ionic density (O+, O2+, NO+)
-        oplusIRI = squeeze(self._RmZeros(a[5 - 1, :])[0]) / 100. * neIRI       # in m-3
-        o2plusIRI = squeeze(self._RmZeros(a[8 - 1, :])[0]) / 100. * neIRI      # in m-3
-        noplusIRI = squeeze(self._RmZeros(a[9 - 1, :])[0]) / 100. * neIRI      # in m-3
+#        iri = {'ne' : neIRI, 'te' : teIRI, 'ti' : tiIRI, 'neFIRI' : iri_ne_firi,
+#            'oplus' : oplusIRI, 'o2plus' : o2plusIRI, 'noplus' : noplusIRI,
+#            'hplus' : hplusIRI, 'heplus' : heplusIRI, 'nplus' : nplusIRI}
 
-        # more ionic densities (H+, He+, N+)
-        hplusIRI = squeeze(self._RmZeros(a[6 - 1, :])[0]) / 100. * neIRI       # in m-3
-        heplusIRI = squeeze(self._RmZeros(a[7 - 1, :])[0]) / 100. * neIRI      # in m-3
-        nplusIRI = squeeze(self._RmZeros(a[11 - 1, :])[0]) / 100. * neIRI      # in m-3
+#        iriadd = { 'NmF2' : b[1 - 1, :][0], 'hmF2' : b[2 - 1, :][0],
+#                'B0' : b[10 - 1, :][0] }
 
-        iri = {'ne' : neIRI, 'te' : teIRI, 'ti' : tiIRI, 'neFIRI' : iri_ne_firi,
-            'oplus' : oplusIRI, 'o2plus' : o2plusIRI, 'noplus' : noplusIRI,
-            'hplus' : hplusIRI, 'heplus' : heplusIRI, 'nplus' : nplusIRI}
-
-        iriadd = { 'NmF2' : b[1 - 1, :][0], 'hmF2' : b[2 - 1, :][0],
-                'B0' : b[10 - 1, :][0] }
-
-        return iri, iriadd
-
-
-    def _RmZeros(self, inputs):
-        """ Replace "zero" values with 'NaN'
-        """
-        inputs[inputs <= 0.0] = nan
-
-        return inputs
-
-
-    def _RmNeg(self, inputs):
-        """ Replace negative values with 'NaN'  """
-        inputs[inputs < 0.0] = nan
-
-        return inputs
+        return iri
 
 
 class IRI2016Profile(IRI2016):
@@ -243,11 +220,11 @@ class IRI2016Profile(IRI2016):
             self.HrProfile()
 
 
-    def _CallIRI(self):
-
-        self.a, self.b = iriwebg(self.jmag, self.jf, self.lat, self.lon, self.year, self.mmdd,
-                            self.iut, self.hour, self.alt, self.htecmax, self.simtype, self.vbeg,
-                            self.vend, self.vstp, self.addinp, self.iriDataFolder)
+#    def _CallIRI(self):
+#
+#        self.a, self.b = iriwebg(self.jmag, self.jf, self.lat, self.lon, self.year, self.mmdd,
+#                            self.iut, self.hour, self.alt, self.htecmax, self.simtype, self.vbeg,
+#                            self.vend, self.vstp, self.addinp, self.iriDataFolder)
 
 
     def _Hr2HHMMSS(self):
@@ -317,7 +294,7 @@ class IRI2016Profile(IRI2016):
 
         if self.verbose:
 
-            lat = arange(self.vbeg, self.numstp*self.vstp, self.vstp)
+            lat = np.arange(self.vbeg, self.numstp*self.vstp, self.vstp)
 
             print('\tGLON\tGLAT\tNmF2\t\thmF2\tB0')
             for j in range(lat.size):
@@ -332,7 +309,7 @@ class IRI2016Profile(IRI2016):
 
         if self.verbose:
 
-            lon = arange(self.vbeg, self.numstp*self.vstp, self.vstp)
+            lon = np.arange(self.vbeg, self.numstp*self.vstp, self.vstp)
 
             print('\tGLON\tGLAT\tNmF2\t\thmF2\tB0')
             for j in range(lon.size):
@@ -345,7 +322,7 @@ class IRI2016Profile(IRI2016):
 
         self._GetTitle()
 
-        t = arange(self.vbeg,self.numstp*self.vstp,self.vstp)
+        t = np.arange(self.vbeg,self.numstp*self.vstp,self.vstp)
 
         self.out = xarray.DataArray(self.a[:9,:t.size].T,
                                     coords={'time':t,
