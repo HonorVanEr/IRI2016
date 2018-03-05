@@ -366,10 +366,10 @@ C*****************************************************************
       INTEGER    DAYNR,DDO,DO2,SEASON,SEADAY
       REAL       LATI,LONGI,MO2,MO,MODIP,NMF2,MAGBR,INVDIP,IAPO,
      &           NMF1,NME,NMD,MM,MLAT,MLONG,NMF2S,NMES,INVDPC
-      CHARACTER  FILNAM*12
+      CHARACTER(12)  FILNAM
       character(*), intent(in) :: datadir
       character(256) dirdata1,filename
-      integer iuccir
+      integer iuccir, i
 c-web-for webversion
 c      CHARACTER FILNAM*53
 
@@ -482,6 +482,12 @@ C ASTRONOMICAL UNION .
         !numhei=int(abs(heiend-heibeg)/abs(heistp))+1
         heibeg = altkm(1)
         heiend = altkm(Nalt)
+        heistp = altkm(2) - altkm(1) ! assumes uniform alt grid
+      if (.not.all(altkm(2:)-altkm(1:Nalt-1) == altkm(2)-altkm(1))) then
+         error stop   'uniform altitude grid required'
+      endif
+
+
         numhei = Nalt
         !if(numhei > nummax) numhei=nummax
 C
@@ -1923,7 +1929,7 @@ c plasma temperatures
 c
 
 330   IF(NOTEM) GOTO 7108
-      IF((HEIGHT.GT.HTE).OR.(HEIGHT.LT.HTA)) GOTO 7108
+      IF((HEIGHT > HTE).OR.(HEIGHT < HTA)) GOTO 7108
       CALL GTD7(IYD,SEC,HEIGHT,LATI,LONGI,HOUR,F10781o,F107Yo,
      &        IAPO,48,D_MSIS,T_MSIS)
       TNH=T_MSIS(2)
