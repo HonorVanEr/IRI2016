@@ -15,7 +15,7 @@ import pyiri2016
 #lat = -11.95; lon = -76.77
 #glat, glon = 0,0
 glat,glon = 65,-148
-alt_km = np.arange(120, 180, 10)
+alt_km = np.arange(120, 180, 20)
 # %% ru
 sim = pyiri2016.timeprofile(('2012-08-21','2012-08-22'),timedelta(hours=0.25),
                             alt_km,glat,glon)
@@ -63,6 +63,7 @@ if Nplot > 2:
     ax.set_xlabel('time UTC (hours)')
     ax.set_ylabel('[m$^{-3}$]')
     ax.set_title(f'$N_e$ vs. altitude and time')
+    ax.set_yscale('log')
     ax.legend(loc='best')
 # %%
 if Nplot > 4:
