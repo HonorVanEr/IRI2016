@@ -937,7 +937,7 @@ C
      &                   and..not.igin.and..not.igino) goto 2910
 
         call tcon(iyear,month,iday,daynr,rzar,arig,ttt,nmonth)
-        if(nmonth.lt.0) goto 3330		! jump to end of program
+        if(nmonth.lt.0) error stop 'invalid month'	! jump to end of program
 
         if(RZIN) then
         	rrr = arzin
@@ -1146,7 +1146,7 @@ C
 8448    WRITE(konsol,8449) filename
 8449    FORMAT(1X////,
      &    ' The file ',A30,'is not in your directory.')
-        GOTO 3330
+        error stop
 C
 C LINEAR INTERPOLATION IN SOLAR ACTIVITY. IG12 used for foF2
 C
