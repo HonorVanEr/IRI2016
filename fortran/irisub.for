@@ -449,9 +449,9 @@ C
         UMR=pi/180.
         humr=pi/12.
         dumr=pi/182.5
-        ALOG2=ALOG(2.)
-        ALG10=ALOG(10.)
-        ALG100=ALOG(100.)
+
+        ALG10=LOG(10.)
+
         montho=-1
         nmono=-1
         iyearo=-1
@@ -483,7 +483,7 @@ C ASTRONOMICAL UNION .
         heibeg = altkm(1)
         heiend = altkm(Nalt)
         numhei = Nalt
-        if(numhei > nummax) numhei=nummax
+        !if(numhei > nummax) numhei=nummax
 C
 C NEW-GUL------------------------------
 c         Y05=.6931473
@@ -1492,7 +1492,7 @@ c
        XDX=NMD*EXP(X*(FP1+X*(FP2+X*FP30)))
        DXDX=XDX*(FP1+X*(2.0*FP2+X*3.0*FP30))
        X=HME-HDX
-       XKK=-DXDX*X/(XDX*ALOG(XDX/NMES))
+       XKK=-DXDX*X/(XDX*LOG(XDX/NMES))
 c
 c if exponent xkk is larger than xkkmax, then xkk will be set to
 c xkkmax and d1 will be determined such that the point hdx/xdx is
@@ -1501,7 +1501,7 @@ c
         xkkmax=5.
         if(xkk.gt.xkkmax) then
                 xkk=xkkmax
-                d1=-alog(xdx/nmes)/(x**xkk)
+                d1=-log(xdx/nmes)/(x**xkk)
         else
                 D1=DXDX/(XDX*XKK*X**(XKK-1.0))
         endif
@@ -1794,7 +1794,7 @@ c Te corrected and Te > Tn enforced
          TNAHHI=T_MSIS(2)
          IF(ATE(I+1).LT.TNAHHI) ATE(I+1)=TNAHHI
          STTE2=(ATE(I+1)-ATE(I))/(AHH(I+1)-AHH(I))
-         ATE(I)=ATE(I)-(STTE2-STTE1)*DTE(I-1)*ALOG2
+         ATE(I)=ATE(I)-(STTE2-STTE1)*DTE(I-1)*LOG(2.)
 1901  STTE1=STTE2
 
 c Te gradients STTE are computed for each segment
