@@ -61,7 +61,7 @@ def Switches():
     jf[21 - 1] = 1; #   21    ion drift computed     ion drift not computed              0
     jf[22 - 1] = 0; #   22    ion densities in %     ion densities in m-3                1
     jf[23 - 1] = 0; #   23    Te_tops (Aeros,ISIS)   Te_topside (TBT-2011)               0
-    jf[24 - 1] = 0; #   24    D-region: IRI-95       Special: 3 D-region models (FIRI)   1
+    jf[24 - 1] = 1; #   24    D-region: IRI-95       Special: 3 D-region models (FIRI)   1
     jf[25 - 1] = 1; #   25    F107D from APF107.DAT  F107D user input (oarr(41))         1
     jf[26 - 1] = 0; #   26    foF2 storm model       no storm updating                   1
     jf[27 - 1] = 1; #   27    IG12 from file         IG12 - user                         1
