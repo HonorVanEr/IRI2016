@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """ Time Profile: IRI2016 """
-from pyiri2016 import IRI2016,IRI2016Profile
+import pyiri2016
 from numpy import arange
+from datetime import timedelta
 from matplotlib.pyplot import figure, show
 try:
     import ephem
@@ -11,11 +12,12 @@ except ImportError:
 hrlim = [0, 24] # [0,24] does whole day(s)
 hrstp = 0.25 # time step [decimal hours]
 #lat = -11.95; lon = -76.77
-lat = 65; lon = -147.5
-alts = arange(100, 200, 10)
-# %% run
-sim = IRI2016Profile(hrlim=hrlim, hrstp=hrstp, lat=lat, lon=lon, alt=150.,
-                     option='time', verbose=False, time='2012-08-21')
+glat = 0
+glon = 0
+alt_km = arange(120, 180, 10)
+# %% ru
+sim = pyiri2016.timeprofile(('2012-08-21','2012-08-22'),timedelta(hours=0.25),
+                            alt_km,glat,glon)
 
 hrbins = arange(hrlim[0], hrlim[1] + hrstp, hrstp)
 
@@ -34,7 +36,7 @@ else:
 
 pn = axs[0]
 NmF2 = sim.b[0, index]
-NmF1 = IRI2016()._RmNeg(sim.b[2, index])
+NmF1 = pyiri2016.IRI2016()._RmNeg(sim.b[2, index])
 NmE = sim.b[4, index]
 pn.plot(hrbins, NmF2, label='N$_m$F$_2$')
 pn.plot(hrbins, NmF1, label='N$_m$F$_1$')
@@ -48,7 +50,7 @@ pn.legend(loc='best')
 
 pn = axs[1]
 hmF2 = sim.b[1, index]
-hmF1 = IRI2016()._RmNeg(sim.b[3, index])
+hmF1 = pyiri2016.IRI2016()._RmNeg(sim.b[3, index])
 hmE = sim.b[5, index]
 pn.plot(hrbins, hmF2, label='h$_m$F$_2$')
 pn.plot(hrbins, hmF1, label='h$_m$F$_1$')
