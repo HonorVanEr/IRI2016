@@ -163,7 +163,9 @@ def IRI( time, altkm, glat, glon, ap=None, f107=None, ssn=None, var=None):
 
 def timeprofile(tlim:tuple, dt:timedelta,
                 altkm:np.ndarray, glat:float, glon:float) -> xarray.DataArray:
-    """compute IRI90 at a single altiude, over time range"""
+    """compute IRI90 at a single altiude, over time range
+    there may be a more effective way to store the data using xarray.DataSet
+    """
 
     T = datetimerange(tlim[0], tlim[1], dt)
 
@@ -172,11 +174,22 @@ def timeprofile(tlim:tuple, dt:timedelta,
                             dims=['time','alt_km','sim'],
                             )
 
+    f107 =[]; ap=[]; NmF2=[]; hmF2=[]; B0=[]
     for t in T:
         iri = IRI(t, altkm, glat, glon)
         iono.loc[t,...] = iri
+        f107.append(iri.attrs['f107'])
+        ap.append(iri.attrs['ap'])
+        NmF2.append(iri.attrs['NmF2'])
+        hmF2.append(iri.attrs['hmF2'])
+        B0.append(iri.attrs['B0'])
 
     iono.attrs = iri.attrs
+    iono.attrs['f107'] = f107
+    iono.attrs['ap'] = ap
+    iono.attrs['NmF2'] = NmF2
+    iono.attrs['hmF2'] = hmF2
+    iono.attrs['B0'] = B0
 
     return iono
 
