@@ -410,6 +410,7 @@ c     &           igino,ut0
         save
 
         dirdata1 = datadir
+        call read_ig_rz
 
         mess=jf(34)
 

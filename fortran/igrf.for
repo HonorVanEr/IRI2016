@@ -1493,10 +1493,9 @@ C  *********************************************************************
          alfa = atan2(sb,st)
          AZM_ANG = alfa/rad
 
-      RETURN
       END
-C
-C
+
+
       SUBROUTINE MLTUT(SLA,SLO,CLA,PLA,PLO,UT)
 C  *********************************************************************
 C  Calculates the MLT midnight in UT hours
