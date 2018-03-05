@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 install_requires = ['python-dateutil','numpy','xarray']
-tests_require = ['nose','coveralls']
+tests_require = ['pytest','nose','coveralls']
 name = 'pyiri2016'
 # %%
 from setuptools import find_packages
@@ -9,7 +9,8 @@ from glob import glob
 from os.path import join
 
 
-src = ['iriwebg.for', 'irisub.for', 'irifun.for',
+src = [#'iriwebg.for',
+       'irisub.for', 'irifun.for',
               'iritec.for', 'iridreg.for', 'igrf.for', 'cira.for', 'iriflip.for']
 
 src = [join('fortran', s) for s in src]

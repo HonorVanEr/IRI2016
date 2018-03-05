@@ -1,9 +1,18 @@
 from pathlib import Path
-import datetime
+from datetime import datetime, timedelta
 from dateutil.parser import parse
 import xarray
-from iri2016 import iriwebg
 from numpy import arange, nan, ones, squeeze
+#
+import iri2016 # fortran
+
+def datetimerange(start:datetime, end:datetime, step:timedelta) -> list:
+    """like range() for datetime!"""
+    assert isinstance(start, datetime)
+    assert isinstance(end, datetime)
+    assert isinstance(step, timedelta)
+
+    return [start + i*step for i in range((end-start) // step)]
 
 class IRI2016(object):
 
@@ -64,11 +73,11 @@ class IRI2016(object):
 
 #%%
 
-    def IRI(self, ap=5, f107=150, glat=0., glon=0., time=datetime.datetime.now(),
-            ssn=150, var=1, vbeg=130.,   vend=130.+1., vstp=1.):
+    def IRI(self, time, altkm, glat, glon, ap, f107, ssn, var):
 
         if isinstance(time, str):
             time = parse(time)
+
 #        doy = squeeze(TimeUtilities().CalcDOY(year, month, dom))
 
         # IRI options
@@ -97,26 +106,22 @@ class IRI2016(object):
          #
          #------------------------------------------------------------------------------
 
-        mmdd = int(1e2 * time.month) + time.day               # month and dom (MMDD)
+        mmdd = 100*time.month + time.day               # month and dom (MMDD)
 
 # %% more inputs
         jmag = 0            #  0: geographic; 1: geomagnetic
-        iut = 0             #  0: for LT;     1: for UT
-        height = 300.       #  in km
-        h_tec_max = 2000    #  0: no TEC; otherwise: upper boundary for integral
-        ivar = var          #  1: altitude; 2: latitude; 3: longitude; ...
-
-        ivbeg = vbeg
-        ivend = vend
-        ivstp = vstp
+      #  iut = 0             #  0: for LT;     1: for UT
+      #  height = 300.       #  in km
+      #  h_tec_max = 2000    #  0: no TEC; otherwise: upper boundary for integral
+      #  ivar = var          #  1: altitude; 2: latitude; 3: longitude; ...
 
         # Ionosphere (IRI)
-        a, b = iriwebg(jmag, jf, glat, glon, int(time.year), mmdd, iut, time.hour,
-            height, h_tec_max, ivar, ivbeg, ivend, ivstp, addinp, self.iriDataFolder)
+#        a, b = iriwebg(jmag, jf, glat, glon, int(time.year), mmdd, iut, time.hour,
+#            height, h_tec_max, ivar, ivbeg, ivend, ivstp, addinp, self.iriDataFolder)
 
-        bins = arange(ivbeg, ivend + ivstp * 0., ivstp)
-        a = a[:, arange(len(bins))]
-        b = b[:, arange(len(bins))]
+        # hour + 25 denotes UTC time
+
+        outf,oarr = iri2016.iri_sub(jf.astype(bool), jmag, glat, glon, time.year, mmdd, time.hour+25, altkm)
 
 # %%
         # IRI Standard Ne (in m-3)
@@ -153,7 +158,7 @@ class IRI2016(object):
     def _RmZeros(self, inputs):
         """ Replace "zero" values with 'NaN'
         """
-        inputs[inputs == 0.0] = nan
+        inputs[inputs <= 0.0] = nan
 
         return inputs
 
@@ -167,8 +172,7 @@ class IRI2016(object):
 
 class IRI2016Profile(IRI2016):
 
-    def __init__(self, alt=None, altlim=[90.,150.], altstp=2.,  htecmax=0,
-                    time=datetime.datetime.now(), hrlim=[0., 24.], hrstp=None,
+    def __init__(self, time, alt_km, altlim=[90.,150.], altstp=2.,  htecmax=0,
                     iut=1, jmag=0,
                     lat=0., latlim=[-90, 90], latstp=10.,
                     lon=0., lonlim=[-180,180], lonstp=20.,
@@ -202,9 +206,6 @@ class IRI2016Profile(IRI2016):
             self.vstp = lonstp
         elif option == 'time':   # Local Time Profile
             self.simtype = 8
-            self.vbeg = hrlim[0]
-            self.vend = hrlim[1]
-            self.vstp = hrstp
         else:
             raise ValueError(f'Invalid option {option}')
 
@@ -219,7 +220,7 @@ class IRI2016Profile(IRI2016):
         self.year = time.year
         self.iut = iut
         self.hour = time.hour
-        self.alt = alt
+        self.alt = alt_km
 
         self.verbose = verbose
         self.numstp = int((self.vend - self.vbeg) / self.vstp) + 1
