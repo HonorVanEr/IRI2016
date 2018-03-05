@@ -1,27 +1,29 @@
 #!/usr/bin/env python
 """ Time Profile: IRI2016 """
-import pyiri2016
-from numpy import arange
+import numpy as np
 from datetime import timedelta
 from matplotlib.pyplot import figure, show
 try:
     import ephem
 except ImportError:
     ephem = None
+#
+import pyiri2016
+
+
 # %% user parameters
 hrlim = [0, 24] # [0,24] does whole day(s)
 hrstp = 0.25 # time step [decimal hours]
 #lat = -11.95; lon = -76.77
 glat = 0
 glon = 0
-alt_km = arange(120, 180, 10)
+alt_km = np.arange(120, 180, 10)
 # %% ru
 sim = pyiri2016.timeprofile(('2012-08-21','2012-08-22'),timedelta(hours=0.25),
                             alt_km,glat,glon)
 
 # %% Plots
-Nplot=2
-
+Nplot=4
 
 if Nplot>2:
     fig = figure(figsize=(16,12))
@@ -30,58 +32,59 @@ else:
     fig = figure(figsize=(16,6))
     axs = fig.subplots(1,2).ravel()
 
-pn = axs[0]
+fig.suptitle(f'{np.datetime_as_string(sim.time[0])[:-13]} to {np.datetime_as_string(sim.time[-1])[:-13]}\n Glat, Glon: {sim.attrs["glat"]}, {sim.attrs["glon"]}')
+
+ax = axs[0]
 #NmF1 = pyiri2016.IRI2016()._RmNeg(sim.b[2, :])
 #NmE = sim.loc[4, :]
-pn.plot(sim.time, sim.attrs['NmF2'], label='N$_m$F$_2$')
-#pn.plot(sim.time, NmF1, label='N$_m$F$_1$')
-#pn.plot(sim.time, NmE, label='N$_m$E')
-pn.set_title(sim.title1)
-pn.set_xlabel('Hour (UT)')
-pn.set_ylabel('(m$^{-3}$)')
-pn.set_yscale('log')
-pn.legend(loc='best')
+ax.plot(sim.time, sim.attrs['NmF2'], label='N$_m$F$_2$')
+#ax.plot(sim.time, NmF1, label='N$_m$F$_1$')
+#ax.plot(sim.time, NmE, label='N$_m$E')
+ax.set_title('Maximum number densities vs. ionospheric layer')
+ax.set_xlabel('Hour (UT)')
+ax.set_ylabel('(m$^{-3}$)')
+ax.set_yscale('log')
+ax.legend(loc='best')
 
-pn = axs[1]
-hmF2 = sim.b[1, :]
-hmF1 = pyiri2016.IRI2016()._RmNeg(sim.b[3, :])
-hmE = sim.b[5, :]
-pn.plot(sim.time, hmF2, label='h$_m$F$_2$')
-pn.plot(sim.time, hmF1, label='h$_m$F$_1$')
-pn.plot(sim.time, hmE, label='h$_m$E')
-pn.set_title(sim.title2)
-pn.set_xlabel('Hour (UT)')
-pn.set_ylabel('(km)')
-pn.legend(loc='best')
-
+ax = axs[1]
+#hmF1 = pyiri2016.IRI2016()._RmNeg(sim.b[3, :])
+#hmE = sim.b[5, :]
+ax.plot(sim.time, sim.attrs['hmF2'], label='h$_m$F$_2$')
+#ax.plot(sim.time, hmF1, label='h$_m$F$_1$')
+#ax.plot(sim.time, hmE, label='h$_m$E')
+ax.set_title('Height of maximum density vs. ionospheric layer')
+ax.set_xlabel('Hour (UT)')
+ax.set_ylabel('(km)')
+ax.legend(loc='best')
+# %%
 if Nplot > 2:
-    pn = axs[2]
+    ax = axs[2]
 
-    for alt in alt_km:
-        sim = pyiri2016.timeprofile(('2012-08-21','2012-08-22'),timedelta(hours=0.25),
-                                    alt,glat,glon)
+    sim = pyiri2016.timeprofile(('2012-08-21','2012-08-22'),timedelta(hours=0.25),
+                                alt_km, glat,glon)
 
-        pn.plot(sim.time, sim.loc[:,'ne'], marker='.', label=alt)
-    pn.set_xlabel('time UTC (hours)')
-    pn.set_ylabel('[m$^{-3}$]')
-    pn.set_title(f'$N_e$ vs. altitude and time')
-    pn.legend(loc='best')
-
+    for a in sim.alt_km:
+        ax.plot(sim.time, sim.loc[:,a,'ne'], marker='.', label=f'{a.item()} km')
+    ax.set_xlabel('time UTC (hours)')
+    ax.set_ylabel('[m$^{-3}$]')
+    ax.set_title(f'$N_e$ vs. altitude and time')
+    ax.legend(loc='best')
+# %%
 if Nplot > 4:
-    pn = axs[4]
+    ax = axs[4]
     tec = sim.b[36, :]
-    pn.plot(sim.time, tec, label=r'TEC')
-    pn.set_xlabel('Hour (UT)')
-    pn.set_ylabel('(m$^{-2}$)')
-    #pn.set_yscale('log')
-    pn.legend(loc='best')
+    ax.plot(sim.time, tec, label=r'TEC')
+    ax.set_xlabel('Hour (UT)')
+    ax.set_ylabel('(m$^{-2}$)')
+    #ax.set_yscale('log')
+    ax.legend(loc='best')
 
-    pn = axs[5]
+    ax = axs[5]
     vy = sim.b[43, :]
-    pn.plot(sim.time, vy, label=r'V$_y$')
-    pn.set_xlabel('Hour (UT)')
-    pn.set_ylabel('(m/s)')
-    pn.legend(loc='best')
+    ax.plot(sim.time, vy, label=r'V$_y$')
+    ax.set_xlabel('Hour (UT)')
+    ax.set_ylabel('(m/s)')
+    ax.legend(loc='best')
 
 for a in axs.ravel():
     a.grid(True)

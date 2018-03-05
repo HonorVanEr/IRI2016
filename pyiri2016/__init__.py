@@ -118,7 +118,8 @@ def IRI( time, altkm, glat, glon, ap=None, f107=None, ssn=None, var=None):
 #     #------------------------------------------------------------------------------
 
     mmdd = 100*time.month + time.day               # month and dom (MMDD)
-
+    # hour + 25 denotes UTC time
+    dhour = (time.hour + 25) + time.minute/60.
 # %% more inputs
     jmag = 0            #  0: geographic; 1: geomagnetic
   #  iut = 0             #  0: for LT;     1: for UT
@@ -130,10 +131,10 @@ def IRI( time, altkm, glat, glon, ap=None, f107=None, ssn=None, var=None):
 #        a, b = iriwebg(jmag, jf, glat, glon, int(time.year), mmdd, iut, time.hour,
 #            height, h_tec_max, ivar, ivbeg, ivend, ivstp, addinp, self.iriDataFolder)
 
-    # hour + 25 denotes UTC time
+
 
     outf,oarr = iri2016.iri_sub(jf, jmag, glat, glon,
-                                time.year, mmdd, time.hour+25, altkm,
+                                time.year, mmdd, dhour, altkm,
                                 proot/'data/')
 
 # %% collect output
@@ -168,6 +169,8 @@ def timeprofile(tlim:tuple, dt:timedelta,
     """
 
     T = datetimerange(tlim[0], tlim[1], dt)
+
+    altkm = np.atleast_1d(altkm)
 
     iono = xarray.DataArray(np.empty((len(T),altkm.size,9)),
                             coords={'time':T,'alt_km':altkm, 'sim':simout},
