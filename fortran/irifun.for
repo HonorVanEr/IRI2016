@@ -5727,7 +5727,7 @@ c     .. array arguments ..
 c     .. local scalars ..
       integer coeff_month_read(1:12)
       character(256) filedata
-      integer i, j
+      integer i, j,u
 c     .. local arrays ..
       double precision coeff_month_all(0:148,0:47,1:12)
       save coeff_month_all
@@ -5738,12 +5738,12 @@ c
 C
       if (coeff_month_read(month) .eq. 0) then
         write(filedata, 10) month+10
-        filename=trim(trim(trim(dirdata1)//'/mcsat/')//trim(filedata))
-        open(10, File=filename, status='old')
+        filename=trim(trim(dirdata1)//'/mcsat/'//filedata)
+        open(newunit=u, File=filename, status='old')
         do j=0,47
-          read(10,20) (coeff_month_all(i,j,month),i=0,148)
+          read(u,20) (coeff_month_all(i,j,month),i=0,148)
         end do
-        close(10)
+        close(u)
         coeff_month_read(month) = 1
       end if
 c
