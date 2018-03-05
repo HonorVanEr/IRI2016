@@ -6,6 +6,9 @@ from numpy import arange, nan, ones, squeeze
 #
 import iri2016 # fortran
 
+proot = Path(__file__).parents[1]
+simout = ['ne','Tn','Ti','Te','nO+','nH+','nHe+','nO2+','nNO+']
+
 def datetimerange(start:datetime, end:datetime, step:timedelta) -> list:
     """like range() for datetime!"""
     assert isinstance(start, datetime)
@@ -121,11 +124,16 @@ class IRI2016(object):
 
         # hour + 25 denotes UTC time
 
-        outf,oarr = iri2016.iri_sub(jf.astype(bool), jmag, glat, glon, time.year, mmdd, time.hour+25, altkm)
+        outf,oarr = iri2016.iri_sub(jf.astype(bool), jmag, glat, glon,
+                                    time.year, mmdd, time.hour+25, altkm,
+                                    proot/'data/')
 
-# %%
-        # IRI Standard Ne (in m-3)
-        neIRI = squeeze(self._RmZeros(self._RmNeg(a[0, :]))[0])
+# %% collect output
+        iri = xarray.DataArray(oarr[:9,:].T,
+                         coords={'alt_km':altkm, 'sim':simout},
+                         dims=['alt_km','sim'],
+                         attrs={'f107':f107, 'ap':ap,
+                                'glat':glat,'glon':glon,'time':time})
 
         # IRI Temperature (in K)
         teIRI = squeeze(a[4 - 1, :][0])

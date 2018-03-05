@@ -411,6 +411,7 @@ c     &           igino,ut0
 
         dirdata1 = datadir
         call read_ig_rz
+        call readapf107
 
         mess=jf(34)
 
@@ -442,23 +443,23 @@ C
 C
 C PROGRAM CONSTANTS AND INITIALIZATION
 C
-        if(icalls.lt.1) then
-        	ARGMAX=88.0
-        	pi=ATAN(1.0)*4.
-        	UMR=pi/180.
-        	humr=pi/12.
-        	dumr=pi/182.5
-        	ALOG2=ALOG(2.)
-        	ALG10=ALOG(10.)
-        	ALG100=ALOG(100.)
-        	montho=-1
-			nmono=-1
-			iyearo=-1
-			idaynro=-1
-			rzino=.true.
-			igino=.true.
-			ut0=-1
-			ursifo=.true.
+      if(icalls < 1) then
+        ARGMAX=88.0
+        pi=ATAN(1.0)*4.
+        UMR=pi/180.
+        humr=pi/12.
+        dumr=pi/182.5
+        ALOG2=ALOG(2.)
+        ALG10=ALOG(10.)
+        ALG100=ALOG(100.)
+        montho=-1
+        nmono=-1
+        iyearo=-1
+        idaynro=-1
+        rzino=.true.
+        igino=.true.
+        ut0=-1
+        ursifo=.true.
 C Initialize parameters for COMMON/IGRF1/
 C   ERA		EARTH RADIUS (WGS-84: 6371.137 KM)
 C   EREQU   MAJOR HALF AXIS FOR EARTH ELLIPSOID (6378.160 KM)
@@ -469,14 +470,14 @@ C   EEXC	Eccentricity of Earth's orbit
 C   DIMO    Earth's dipole moment in Gauss
 C ERA, EREQU and ERPOL as recommended by the INTERNATIONAL
 C ASTRONOMICAL UNION .
-        	ERA=6371.2
-        	EREQU=6378.16
-        	ERPOL=6356.775
-        	AQUAD=EREQU*EREQU
-        	BQUAD=ERPOL*ERPOL
-        	EEXC=0.01675
-        	dimo=0.311653
-        	endif
+        ERA=6371.2
+        EREQU=6378.16
+        ERPOL=6356.775
+        AQUAD=EREQU*EREQU
+        BQUAD=ERPOL*ERPOL
+        EEXC=0.01675
+        dimo=0.311653
+      endif
 
         !numhei=int(abs(heiend-heibeg)/abs(heistp))+1
         heibeg = altkm(1)
