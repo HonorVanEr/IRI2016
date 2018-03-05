@@ -12,22 +12,20 @@ import pyiri2016
 
 
 # %% user parameters
-hrlim = [0, 24] # [0,24] does whole day(s)
-hrstp = 0.25 # time step [decimal hours]
 #lat = -11.95; lon = -76.77
-glat = 0
-glon = 0
+#glat, glon = 0,0
+glat,glon = 65,-148
 alt_km = np.arange(120, 180, 10)
 # %% ru
 sim = pyiri2016.timeprofile(('2012-08-21','2012-08-22'),timedelta(hours=0.25),
                             alt_km,glat,glon)
 
 # %% Plots
-Nplot=4
+Nplot=3
 
 if Nplot>2:
     fig = figure(figsize=(16,12))
-    axs = fig.subplots(2,2, sharex=True).ravel()
+    axs = fig.subplots(3,1, sharex=True).ravel()
 else:
     fig = figure(figsize=(16,6))
     axs = fig.subplots(1,2).ravel()
@@ -59,9 +57,6 @@ ax.legend(loc='best')
 # %%
 if Nplot > 2:
     ax = axs[2]
-
-    sim = pyiri2016.timeprofile(('2012-08-21','2012-08-22'),timedelta(hours=0.25),
-                                alt_km, glat,glon)
 
     for a in sim.alt_km:
         ax.plot(sim.time, sim.loc[:,a,'ne'], marker='.', label=f'{a.item()} km')
