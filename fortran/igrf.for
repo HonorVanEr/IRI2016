@@ -597,7 +597,8 @@ C 02/26/2010 update to IGRF-11 (2010) (###)
 C 10/05/2011 added COMMON/DIPOL/ for MLT computation in DPMTRX (IRIFUN)
 C 02/10/2015 update to IGRF-12 (2015) (###)
 c-----------------------------------------------------------------------
-        CHARACTER*13    FILMOD, FIL1, FIL2
+      real, intent(in) :: year
+        CHARACTER(13)    FILMOD, FIL1, FIL2
 C ### FILMOD, DTEMOD array-size is number of IGRF maps
         DIMENSION       GH1(196),GH2(196),GHA(196),FILMOD(16)
         DIMENSION		DTEMOD(16)
@@ -633,10 +634,10 @@ C-- DETERMINE IGRF-YEARS FOR INPUT-YEAR
         DTE2 = DTEMOD(L+1)
         FIL2 = FILMOD(L+1)
 C-- GET IGRF COEFFICIENTS FOR THE BOUNDARY YEARS
-        CALL GETSHC (FIL1, NMAX1, ERAD, GH1, IER)
-            IF (IER .NE. 0) STOP
-        CALL GETSHC (FIL2, NMAX2, ERAD, GH2, IER)
-            IF (IER .NE. 0) STOP
+        CALL GETSHC (FIL1, NMAX1, ERAD, GH1)
+
+        CALL GETSHC (FIL2, NMAX2, ERAD, GH2)
+
 C-- DETERMINE IGRF COEFFICIENTS FOR YEAR
         IF (L .LE. NUMYE-1) THEN
           CALL INTERSHC (YEAR, DTE1, NMAX1, GH1, DTE2,
@@ -681,7 +682,7 @@ C-- DETERMINE MAGNETIC DIPOL MOMENT AND COEFFIECIENTS G
         END
 C
 C
-        SUBROUTINE GETSHC (FSPEC, NMAX, ERAD, GH, IER)
+        SUBROUTINE GETSHC (FSPEC, NMAX, ERAD, GH)
 C ===============================================================
 C       Reads spherical harmonic coefficients from the specified
 C       file into an array.
@@ -700,6 +701,10 @@ C                                 = -2, records out of order
 C                                 = FORTRAN run-time error number
 C ===============================================================
         CHARACTER(*), intent(in) ::  FSPEC
+        integer, intent(out) :: nmax
+        real, intent(out) :: gh
+
+        integer ier
         character(80) :: FOUT
         character(256) :: dirdata1, filename
         DIMENSION       GH(196)
@@ -719,21 +724,28 @@ C ---------------------------------------------------------------
  667    FORMAT(A13)
 c-web-for webversion
 c 667    FORMAT('/var/www/omniweb/cgi/vitmo/IRI/',A13)
-        filename = trim(trim(trim(dirdata1) // '/igrf/') // trim(FOUT))
-        OPEN(newunit=IU, FILE=filename, STATUS='OLD',
-     &       IOSTAT=IER, ERR=999)
-
-        READ (IU, *, IOSTAT=IER, ERR=999)
-        READ (IU, *, IOSTAT=IER, ERR=999) NMAX, ERAD, XMYEAR
-        nm=nmax*(nmax+2)
-        READ (IU, *, IOSTAT=IER, ERR=999) (GH(i),i=1,nm)
-        close(iu)
-        return
-
-999     if (mess) then
-          write(konsol,'(A,A13)') 'Error while reading', filename
+        filename = trim(trim(dirdata1) // '/igrf/' // FOUT)
+        OPEN(newunit=IU, FILE=filename, STATUS='OLD', IOSTAT=IER)
+        if(ier/=0) then
+          write(konsol,*)  'Error opening ',filename,
+     &         ' in ',dirdata1,' with ',fout
           error stop
         endif
+
+        READ (IU, *, IOSTAT=IER)
+        READ (IU, *, IOSTAT=IER) NMAX, ERAD, XMYEAR
+
+        nm = nmax*(nmax+2)
+
+        READ (IU, *, IOSTAT=IER) (GH(i),i=1,nm)
+
+
+        if (ier/=0) then
+          write(konsol,'(A,A13)') 'Error while reading ', filename
+          error stop
+        endif
+
+        close(iu)
 
         END SUBROUTINE GETSHC
 

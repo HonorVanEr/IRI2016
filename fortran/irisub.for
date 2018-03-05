@@ -173,7 +173,8 @@ C*****************************************************************
 C
 C
        SUBROUTINE IRI_SUB(JF,JMAG,ALATI,ALONG,IYYYY,MMDD,DHOUR,
-     &    altkm,Nalt,OUTF,OARR)
+     &    altkm,Nalt,datadir,
+     &    OUTF,OARR)
 
        use, intrinsic:: iso_fortran_env, only: error_unit
 C-----------------------------------------------------------------
@@ -366,6 +367,7 @@ C*****************************************************************
       REAL       LATI,LONGI,MO2,MO,MODIP,NMF2,MAGBR,INVDIP,IAPO,
      &           NMF1,NME,NMD,MM,MLAT,MLONG,NMF2S,NMES,INVDPC
       CHARACTER  FILNAM*12
+      character(*), intent(in) :: datadir
       character(256) dirdata1,filename
       integer iuccir
 c-web-for webversion
@@ -406,6 +408,8 @@ c     &           igino,ut0
       DATA icalls/0/
 
         save
+
+        dirdata1 = datadir
 
         mess=jf(34)
 
@@ -850,6 +854,7 @@ C
         ENDIF
         CALL GEODIP(IYEAR,LATI,LONGI,MLAT,MLONG,JMAG)
 
+! print *,'data directory ' ,dirdata1
         CALL FELDCOF(RYEAR)
 
         if(jf(18)) then
@@ -1090,7 +1095,7 @@ C
 104         FORMAT('ccir',I2,'.asc')
 c-web-for webversion
 c104     FORMAT('/var/www/omniweb/cgi/vitmo/IRI/ccir',I2,'.asc')
-        filename=trim(trim(trim(dirdata1) // '/ccir/') // trim(FILNAM))
+        filename=trim(trim(dirdata1) // '/ccir/' // FILNAM)
         OPEN(newunit=IUCCIR,FILE=filename,STATUS='OLD',ERR=8448,
      &          FORM='FORMATTED')
         READ(IUCCIR,4689) F2,FM3
@@ -1104,7 +1109,7 @@ C
 1144          FORMAT('ursi',I2,'.asc')
 c-web-for webversion
 c1144    FORMAT('/var/www/omniweb/cgi/vitmo/IRI/ursi',I2,'.asc')
-          filename=trim(trim(trim(dirdata1)//'/ursi/')//trim(FILNAM))
+          filename=trim(trim(dirdata1)//'/ursi/'// FILNAM)
           OPEN(newunit=IUCCIR,FILE=filename,STATUS='OLD',ERR=8448,
      &         FORM='FORMATTED')
           READ(IUCCIR,4689) F2
@@ -1123,7 +1128,7 @@ c first CCIR ..............................................
 c
 
         WRITE(FILNAM,104) NMONTH+10
-        filename=trim(trim(trim(dirdata1) // '/ccir/') // trim(FILNAM))
+        filename=trim(trim(dirdata1) // '/ccir/'// FILNAM)
         OPEN(newunit=IUCCIR,FILE=filename,STATUS='OLD',ERR=8448,
      &          FORM='FORMATTED')
         READ(IUCCIR,4689) F2N,FM3N
@@ -1134,7 +1139,7 @@ C then URSI if chosen .....................................
 C
         if(URSIF2) then
           WRITE(FILNAM,1144) NMONTH+10
-          filename=trim(trim(trim(dirdata1)//'/ursi/')//trim(FILNAM))
+          filename=trim(trim(dirdata1)//'/ursi/'// FILNAM)
           OPEN(newunit=IUCCIR,FILE=filename,STATUS='OLD',ERR=8448,
      &         FORM='FORMATTED')
           READ(IUCCIR,4689) F2N
@@ -2223,6 +2228,9 @@ c-----------------------------------------------------------------------
         dimension   xvar(8)
         logical     jf(50)
         real :: height(:)
+        character(256) dirdata1
+
+        common /folders/ dirdata1
 
         nummax=1000
         !numstp=int((vend-vbeg)/vstp)+1
@@ -2237,7 +2245,7 @@ c-----------------------------------------------------------------------
             xhour=dhour+iut*25.
 ! TODO: need to pass vector of altitudes
             call IRI_SUB(JF,JMAG,ALATI,ALONG,IYYYY,MMDD,XHOUR,
-     &                  height,Nalt,a,OARR)
+     &                  height,Nalt,dirdata1,a,OARR)
             if(h_tec_max.gt.50.) then
                 call iri_tec (50.,h_tec_max,2,tec,tect,tecb)
                 oarr(37)=tec
@@ -2276,7 +2284,7 @@ c-----------------------------------------------------------------------
                 do 1349 iii=1,100
 1349                    oarr(iii)=b(iii,i)
                 call IRI_SUB(JF,JMAG,ALATI,ALONG,IYYYY,MMDD,DHOUR,
-     &                  height,1,OUTF,OARR)
+     &                  height,1,dirdata1,OUTF,OARR)
                 if(h_tec_max.gt.50.) then
                         call iri_tec (50.,h_tec_max,2,tec,tect,tecb)
                         oarr(37)=tec
