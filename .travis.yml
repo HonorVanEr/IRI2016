@@ -21,7 +21,7 @@ before_install:
     # temp for pip < 9.1
     - pip -q install numpy
 
-install: pip install -e .[tests]
+install: pip -q install -e .[tests]
 
 script:
   - pytest
