@@ -7,7 +7,7 @@ from matplotlib.pyplot import figure,  show
 
 latlim = [-60, 60]
 latstp = 2.
-iri2016Obj = IRI2016Profile(alt=600, latlim=latlim, latstp=latstp, \
+iri2016Obj = IRI2016Profile(alt_km=600, latlim=latlim, latstp=latstp, \
 lon=-76.77, option='lat',  time='2004-01-01T17')
 
 latbins = arange(latlim[0], latlim[1] + latstp, latstp)

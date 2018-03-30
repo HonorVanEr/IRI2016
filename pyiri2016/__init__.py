@@ -180,7 +180,7 @@ def timeprofile(tlim:tuple, dt:timedelta,
         if iono is None:
             iono = iri
         else:
-            iono = xarray.merge(iono,iri)
+            iono = xarray.merge((iono,iri))
 
         f107.append(iri.f107)
         ap.append(iri.ap)
