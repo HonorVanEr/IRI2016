@@ -23,11 +23,6 @@ def datetimerange(start:datetime, end:datetime, step:timedelta) -> list:
 
     return [start + i*step for i in range((end-start) // step)]
 
-class IRI2016(object):
-
-    def __init__(self):
-        self.iriDataFolder = Path(__file__).parent / 'data'
-
 
 def Switches():
     """
@@ -81,7 +76,6 @@ def Switches():
     return jf
 
 #%%
-
 def IRI( time, altkm, glat, glon, ap=None, f107=None, ssn=None, var=None):
 
     if isinstance(time, str):
@@ -138,14 +132,20 @@ def IRI( time, altkm, glat, glon, ap=None, f107=None, ssn=None, var=None):
                                 proot/'data/')
 
 # %% collect output
-    dsf = {k: (('time','alt_km'),np.atleast_2d(v)) for (k,v) in zip(simout, outf[:9,:])}
+    dsf = {k: (('time','alt_km','lat','lon'),np.atleast_2d(v[None,:,None,None])) for (k,v) in zip(simout, outf[:9,:])}
+
+    dsf.update({'NmF2':(('time','lat','lon'),np.atleast_3d(oarr[0]))})
+    dsf.update({'hmF2':(('time','lat','lon'),np.atleast_3d(oarr[1]))})
+    dsf.update({'NmF1':(('time','lat','lon'),np.atleast_3d(oarr[2]))})
+    dsf.update({'hmF1':(('time','lat','lon'),np.atleast_3d(oarr[3]))})
+    dsf.update({'NmE':(('time','lat','lon'),np.atleast_3d(oarr[4]))})
+    dsf.update({'hmE':(('time','lat','lon'),np.atleast_3d(oarr[5]))})
+    dsf.update({'B0':(('time','lat','lon'),np.atleast_3d(oarr[9]))})
 
     iri = xarray.Dataset(dsf,
-                     coords={'time':[time],'alt_km':altkm},
+                     coords={'time':[time],'alt_km':altkm,'lat':[glat],'lon':[glon]},
                      attrs={'f107':oarr[40], 'ap':oarr[50],
                             'glat':glat,'glon':glon,'time':time,
-                            'NmF2':oarr[0], 'hmF2':oarr[1],
-                            'B0':oarr[9]
                             })
 
 # FIRI Ne (in m-3)
@@ -165,7 +165,7 @@ def IRI( time, altkm, glat, glon, ap=None, f107=None, ssn=None, var=None):
 
 def timeprofile(tlim:tuple, dt:timedelta,
                 altkm:np.ndarray, glat:float, glon:float) -> xarray.Dataset:
-    """compute IRI90 at a single altiude, over time range
+    """compute IRI90 altitude profile over time range for fixed lat/lon
     """
 
     T = datetimerange(tlim[0], tlim[1], dt)
@@ -174,7 +174,7 @@ def timeprofile(tlim:tuple, dt:timedelta,
 
     iono = None
 
-    f107 =[]; ap=[]; NmF2=[]; hmF2=[]; B0=[]
+    f107 =[]; ap=[]
     for t in T:
         iri = IRI(t, altkm, glat, glon)
         if iono is None:
@@ -184,71 +184,43 @@ def timeprofile(tlim:tuple, dt:timedelta,
 
         f107.append(iri.f107)
         ap.append(iri.ap)
-        NmF2.append(iri.NmF2)
-        hmF2.append(iri.hmF2)
-        B0.append(iri.B0)
+
 
     iono.attrs = iri.attrs
     iono.attrs['f107'] = f107
     iono.attrs['ap'] = ap
-    iono.attrs['NmF2'] = NmF2
-    iono.attrs['hmF2'] = hmF2
-    iono.attrs['B0'] = B0
 
     return iono
 
 
-class IRI2016Profile(IRI2016):
+def geoprofile(latlim:tuple, dlat:float, glon:float,
+                altkm:np.ndarray, time:datetime) -> xarray.Dataset:
+    """compute IRI90 altitude profiles at time, over lat or lon range
+    """
 
-    def __init__(self, time, alt_km, altlim=[90.,150.], altstp=2.,  htecmax=0,
-                    iut=1, jmag=0,
-                    lat=0., latlim=[-90, 90], latstp=10.,
-                    lon=0., lonlim=[-180,180], lonstp=20.,
-                    option='vertical', verbose=False):
+    glat = np.arange(*latlim,dlat)
 
-        if isinstance(time,str):
-            time = parse(time)
+    altkm = np.atleast_1d(altkm)
 
-        self.iriDataFolder = Path(__file__).parent / 'data'
+    iono = None
 
-        self.jf = self.Switches()
-
-        self.addinp = list(map(lambda x : -1, range(12)))
-
-        self.option = option
-
-        if option == 'vertical':     # Height Profile
-            self.simtype = 1
-            self.vbeg = altlim[0]
-            self.vend = altlim[1]
-            self.vstp = altstp
-        elif option == 'lat':   # Latitude Profile
-            self.simtype = 2
-            self.vbeg = latlim[0]
-            self.vend = latlim[1]
-            self.vstp = latstp
-        elif option == 'lon':   # Longitude Profile
-            self.simtype = 3
-            self.vbeg = lonlim[0]
-            self.vend = lonlim[1]
-            self.vstp = lonstp
-        elif option == 'time':   # Local Time Profile
-            self.simtype = 8
+    f107 =[]; ap=[]
+    for l in glat:
+        iri = IRI(time, altkm, l, glon)
+        if iono is None:
+            iono = iri
         else:
-            raise ValueError(f'Invalid option {option}')
+            iono = xarray.merge((iono,iri))
+
+        f107.append(iri.f107)
+        ap.append(iri.ap)
 
 
-        self.htecmax = htecmax
-        self.jmag = jmag
-        self.lat = lat
-        self.lon = lon
-        self.iut = iut
-        self.alt = alt_km
+    iono.attrs = iri.attrs
+    iono.attrs['f107'] = f107
+    iono.attrs['ap'] = ap
 
-        self.verbose = verbose
-
-        if option == 'vertical':
-            self.HeiProfile()
+    return iono
 
 
 

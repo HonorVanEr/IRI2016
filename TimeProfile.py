@@ -35,7 +35,7 @@ fig.suptitle(f'{str(sim.time[0].values)[:-13]} to {str(sim.time[-1].values)[:-13
 ax = axs[0]
 #NmF1 = pyiri2016.IRI2016()._RmNeg(sim.b[2, :])
 #NmE = sim.loc[4, :]
-ax.plot(sim.time, sim.NmF2, label='N$_m$F$_2$')
+ax.plot(sim.time, sim['NmF2'].squeeze(), label='N$_m$F$_2$')
 #ax.plot(sim.time, NmF1, label='N$_m$F$_1$')
 #ax.plot(sim.time, NmE, label='N$_m$E')
 ax.set_title('Maximum number densities vs. ionospheric layer')
@@ -47,7 +47,7 @@ ax.legend(loc='best')
 ax = axs[1]
 #hmF1 = pyiri2016.IRI2016()._RmNeg(sim.b[3, :])
 #hmE = sim.b[5, :]
-ax.plot(sim.time, sim.hmF2, label='h$_m$F$_2$')
+ax.plot(sim.time, sim['hmF2'].squeeze(), label='h$_m$F$_2$')
 #ax.plot(sim.time, hmF1, label='h$_m$F$_1$')
 #ax.plot(sim.time, hmE, label='h$_m$E')
 ax.set_title('Height of maximum density vs. ionospheric layer')
@@ -59,7 +59,7 @@ if Nplot > 2:
     ax = axs[2]
 
     for a in sim.alt_km:
-        ax.plot(sim.time, sim['ne'], marker='.', label=f'{a.item()} km')
+        ax.plot(sim.time, sim['ne'].squeeze(), marker='.', label=f'{a.item()} km')
     ax.set_xlabel('time UTC (hours)')
     ax.set_ylabel('[m$^{-3}$]')
     ax.set_title(f'$N_e$ vs. altitude and time')

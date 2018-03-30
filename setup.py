@@ -57,4 +57,6 @@ if __name__ == '__main__':
                          'tests':tests_require,},
         tests_require = tests_require,
         python_requires='>=3.6',
+        scripts=['AltitudeProfile.py','TimeProfile.py','LatitudeProfile.py'],
+        include_package_data=True,
         )
