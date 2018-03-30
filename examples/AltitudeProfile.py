@@ -18,7 +18,7 @@ fig.suptitle(f'{iri.time}\n Glat, Glon: {iri.attrs["glat"]}, {iri.attrs["glon"]}
 
 
 pn = axs[0]
-pn.plot(iri.loc[:,'ne'], iri.alt_km, label='N$_e$')
+pn.plot(iri['ne'], iri.alt_km, label='N$_e$')
 #pn.set_title(iri2016Obj.title1)
 pn.set_xlabel('Density (m$^{-3}$)')
 pn.set_ylabel('Altitude (km)')
@@ -27,8 +27,8 @@ pn.legend(loc='best')
 pn.grid(True)
 
 pn = axs[1]
-pn.plot(iri.loc[:,'Ti'], iri.alt_km, label='T$_i$')
-pn.plot(iri.loc[:,'Te'], iri.alt_km, label='T$_e$')
+pn.plot(iri['Ti'], iri.alt_km, label='T$_i$')
+pn.plot(iri['Te'], iri.alt_km, label='T$_e$')
 #pn.set_title(iri2016Obj.title2)
 pn.set_xlabel('Temperature (K)')
 pn.set_ylabel('Altitude (km)')

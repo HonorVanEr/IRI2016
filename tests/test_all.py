@@ -6,7 +6,7 @@ def test_main1():
 
     iri = pyiri2016.IRI('1980-03-21T12', 130., 0., 0.)
 
-    np.testing.assert_allclose((iri.loc[:,'ne'].item(), iri.attrs['NmF2'], iri.attrs['hmF2']),
+    np.testing.assert_allclose((iri['ne'].item(), iri.NmF2, iri.hmF2),
                     (267285184512.0, 2580958937088.0, 438.78643798828125))
 
     print('assert passed')
