@@ -30,7 +30,7 @@ else:
     fig = figure(figsize=(16,6))
     axs = fig.subplots(1,2).ravel()
 
-fig.suptitle(f'{np.datetime_as_string(sim.time[0])[:-13]} to {np.datetime_as_string(sim.time[-1])[:-13]}\n Glat, Glon: {sim.attrs["glat"]}, {sim.attrs["glon"]}')
+fig.suptitle(f'{str(sim.time[0].values)[:-13]} to {str(sim.time[-1].values)[:-13]}\n Glat, Glon: {sim.glat}, {sim.glon}')
 
 ax = axs[0]
 #NmF1 = pyiri2016.IRI2016()._RmNeg(sim.b[2, :])

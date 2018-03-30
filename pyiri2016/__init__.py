@@ -138,10 +138,10 @@ def IRI( time, altkm, glat, glon, ap=None, f107=None, ssn=None, var=None):
                                 proot/'data/')
 
 # %% collect output
-    dsf = {k: ('alt_km',v) for (k,v) in zip(simout, outf[:9,:])}
+    dsf = {k: (('time','alt_km'),np.atleast_2d(v)) for (k,v) in zip(simout, outf[:9,:])}
 
     iri = xarray.Dataset(dsf,
-                     coords={'alt_km':altkm},
+                     coords={'time':[time],'alt_km':altkm},
                      attrs={'f107':oarr[40], 'ap':oarr[50],
                             'glat':glat,'glon':glon,'time':time,
                             'NmF2':oarr[0], 'hmF2':oarr[1],
@@ -189,11 +189,11 @@ def timeprofile(tlim:tuple, dt:timedelta,
         B0.append(iri.B0)
 
     iono.attrs = iri.attrs
-    iono.f107 = f107
-    iono.ap = ap
-    iono.NmF2 = NmF2
-    iono.hmF2 = hmF2
-    iono.B0 = B0
+    iono.attrs['f107'] = f107
+    iono.attrs['ap'] = ap
+    iono.attrs['NmF2'] = NmF2
+    iono.attrs['hmF2'] = hmF2
+    iono.attrs['B0'] = B0
 
     return iono
 
